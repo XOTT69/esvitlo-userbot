@@ -9,8 +9,8 @@ API_ID = int(os.environ["API_ID"])
 API_HASH = os.environ["API_HASH"]
 SESSION_STRING = os.environ["SESSION_STRING"]
 
-BOT_TOKEN = os.environ["BOT_TOKEN"]          # 8413003519:...
-TARGET_CHAT_ID = os.environ["TARGET_CHAT_ID"]  # -100...
+BOT_TOKEN = os.environ["BOT_TOKEN"]            # токен @plazakvartalbot
+TARGET_CHAT_ID = os.environ["TARGET_CHAT_ID"]  # chat_id групи, як рядок
 
 ESVITLO_CHANNEL = "esvitlo_kyiv_oblast"
 
@@ -40,7 +40,8 @@ async def esvitlo_handler(event):
     if "2.2" not in text and "підгрупа 2.2" not in text:
         return
 
-    await asyncio.sleep(random.randint(5, 60))  # антиспам
+    # антиспам
+    await asyncio.sleep(random.randint(5, 60))
 
     lines = [l.strip() for l in text.split("\n") if l.strip()]
     date_line = next(
