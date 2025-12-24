@@ -10,9 +10,9 @@ API_HASH = os.environ["API_HASH"]
 SESSION_STRING = os.environ["SESSION_STRING"]
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]            # токен @plazakvartalbot
-TARGET_CHAT_ID = os.environ["TARGET_CHAT_ID"]  # chat_id групи, як рядок
+TARGET_CHAT_ID = os.environ["TARGET_CHAT_ID"]  # '-1003348454247' як str
 
-ESVITLO_CHANNEL = "esvitlo_kyiv_oblast"
+ESVITLO_CHANNEL = "esvitlo_kyiv_oblast"       # канал еСвітло Київська область
 
 client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
 
@@ -35,12 +35,11 @@ def send_via_bot(text: str):
 @client.on(events.NewMessage(chats=ESVITLO_CHANNEL))
 async def esvitlo_handler(event):
     text = event.raw_text or ""
+    print("NEW FROM ESVITLO:", text[:100])
 
-    # тільки підгрупа 2.2
     if "2.2" not in text and "підгрупа 2.2" not in text:
         return
 
-    # антиспам
     await asyncio.sleep(random.randint(5, 60))
 
     lines = [l.strip() for l in text.split("\n") if l.strip()]
@@ -63,12 +62,19 @@ async def esvitlo_handler(event):
     print("Forwarded 2.2 via Bot API")
 
 
-async def main():
+async def runner():
     me = await client.get_me()
     print("Userbot running as", me.id, me.username)
-    await client.run_until_disconnected()
+
+    while True:
+        try:
+            await client.run_until_disconnected()  # тримаємо конект поки не впав[web:220][web:225]
+        except Exception as e:
+            print("Disconnected with error:", repr(e))
+            await asyncio.sleep(5)
+            print("Reconnecting...")
 
 
 if __name__ == "__main__":
     with client:
-        client.loop.run_until_complete(main())
+        client.loop.run_until_complete(runner())
