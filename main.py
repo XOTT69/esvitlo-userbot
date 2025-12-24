@@ -1,29 +1,46 @@
 import os
 import asyncio
 import random
+import requests
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
 
 API_ID = int(os.environ["API_ID"])
 API_HASH = os.environ["API_HASH"]
 SESSION_STRING = os.environ["SESSION_STRING"]
-TARGET_CHAT_ID = int(os.environ["TARGET_CHAT_ID"])  # -100...
+
+BOT_TOKEN = os.environ["BOT_TOKEN"]          # 8413003519:...
+TARGET_CHAT_ID = os.environ["TARGET_CHAT_ID"]  # -100...
 
 ESVITLO_CHANNEL = "esvitlo_kyiv_oblast"
 
 client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
 
 
+def send_via_bot(text: str):
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    data = {
+        "chat_id": TARGET_CHAT_ID,
+        "text": text,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True,
+    }
+    try:
+        r = requests.post(url, data=data, timeout=10)
+        print("Bot API status:", r.status_code, r.text[:200])
+    except Exception as e:
+        print("Bot API error:", e)
+
+
 @client.on(events.NewMessage(chats=ESVITLO_CHANNEL))
 async def esvitlo_handler(event):
     text = event.raw_text or ""
 
-    # фільтр тільки по 2.2
+    # тільки підгрупа 2.2
     if "2.2" not in text and "підгрупа 2.2" not in text:
         return
 
-    # рандомна затримка, щоб не палитись
-    await asyncio.sleep(random.randint(5, 60))
+    await asyncio.sleep(random.randint(5, 60))  # антиспам
 
     lines = [l.strip() for l in text.split("\n") if l.strip()]
     date_line = next(
@@ -34,24 +51,15 @@ async def esvitlo_handler(event):
 
     body = "\n".join(group_lines) if group_lines else text
 
-    msg = "🔌 Чабани, підгрупа 2.2 (єСвітло)\n"
+    msg = "🔌 <b>Чабани, підгрупа 2.2 (єСвітло)</b>\n"
     if date_line:
         msg += f"📅 {date_line}\n\n"
     else:
         msg += "\n"
     msg += body
 
-    await client.send_message(TARGET_CHAT_ID, msg)
-    print("Forwarded 2.2 message")
-
-
-@client.on(events.NewMessage(pattern=r"^/status"))
-async def status_handler(event):
-    # відповідаємо тільки в твоїй групі
-    if event.chat_id != TARGET_CHAT_ID:
-        return
-
-    await event.reply("✅ Userbot живий, слухаю @esvitlo_kyiv_oblast по підгрупі 2.2")
+    send_via_bot(msg)
+    print("Forwarded 2.2 via Bot API")
 
 
 async def main():
