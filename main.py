@@ -36,11 +36,10 @@ async def handler(event):
     title = getattr(chat, "title", "")
     text = event.raw_text or ""
 
+    # Логуємо взагалі всі нові повідомлення
     print("MSG from", username or title, ":", text[:80].replace("\n", " "))
 
-    if username != ESVITLO_USERNAME:
-        return
-
+    # ПОКИ ЩО без фільтра по каналу, тільки перевірка 2.2
     if "2.2" not in text and "підгрупа 2.2" not in text:
         return
 
