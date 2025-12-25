@@ -1,6 +1,7 @@
 import os
 import asyncio
 import random
+import ssl
 import requests
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
@@ -16,7 +17,20 @@ TARGET_CHAT_ID = os.environ["TARGET_CHAT_ID"]
 
 ESVITLO_USERNAME = "esvitlo_kyiv_oblast"
 
-client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
+# TLS / SSL контекст для Railway (SECLEVEL=1)[web:78]
+ssl_ctx = ssl.create_default_context()
+ssl_ctx.set_ciphers("DEFAULT:@SECLEVEL=1")
+
+client = TelegramClient(
+    StringSession(SESSION_STRING),
+    API_ID,
+    API_HASH,
+    connection_retries=None,
+    timeout=30,
+    request_retries=5,
+    connection_over_ssl=True,
+    ssl=ssl_ctx,
+)
 
 
 def send_via_bot(text: str):
@@ -38,7 +52,7 @@ async def handler(event):
     title = getattr(chat, "title", "")
     text = event.raw_text or ""
 
-    # Логуємо всі апдейти
+    # Логуємо все, щоб бачити, що бот живий
     print("MSG from", username or title, ":", text[:80].replace("\n", " "))
 
     if username != ESVITLO_USERNAME:
@@ -71,13 +85,18 @@ async def handler(event):
 
 async def main():
     print("MAIN ASYNC START")
-    await client.start()  # авторизація/конект[web:69]
+    await client.start()  # конект до Telegram з урахуванням ssl_ctx[web:24][web:26]
     me = await client.get_me()
     print("Userbot running as", me.id, me.username)
     print("RUN UNTIL DISCONNECTED...")
-    await client.run_until_disconnected()  # висить, поки клієнт живий[web:77]
+    await client.run_until_disconnected()
 
 
 if __name__ == "__main__":
     print("MAIN ENTER")
-    client.loop.run_until_complete(main())
+    try:
+        client.loop.run_until_complete(main())
+    except Exception as e:
+        import traceback
+        print("FATAL ERROR IN MAIN:", repr(e))
+        traceback.print_exc()
