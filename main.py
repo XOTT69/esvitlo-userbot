@@ -99,5 +99,9 @@ async def runner():
 
 
 if __name__ == "__main__":
-    with client:
-        client.loop.run_until_complete(runner())
+    try:
+        print("MAIN ENTER")
+        with client:
+            client.loop.run_until_complete(runner())
+    except Exception as e:
+        print("FATAL ERROR IN MAIN:", repr(e))
