@@ -12,7 +12,7 @@ API_HASH = os.environ["API_HASH"]
 SESSION_STRING = os.environ["SESSION_STRING"]
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
-TARGET_CHAT_ID = os.environ["TARGET_CHAT_ID"]  # "-1003504400394"
+TARGET_CHAT_ID = os.environ["TARGET_CHAT_ID"]
 
 ESVITLO_USERNAME = "esvitlo_kyiv_oblast"
 
@@ -33,12 +33,7 @@ def send_via_bot(text: str):
 
 @client.on(events.NewMessage)
 async def handler(event):
-    try:
-        chat = await event.get_chat()
-    except Exception as e:
-        print("ERROR get_chat:", repr(e))
-        return
-
+    chat = await event.get_chat()
     username = getattr(chat, "username", "")
     title = getattr(chat, "title", "")
     text = event.raw_text or ""
@@ -75,33 +70,21 @@ async def handler(event):
 
 async def runner():
     print("RUNNER STARTED")
-
-    try:
-        await client.connect()
-        print("CLIENT CONNECTED:", client.is_connected())
-    except Exception as e:
-        print("ERROR CONNECT:", repr(e))
-
     try:
         me = await client.get_me()
         print("Userbot running as", me.id, me.username)
     except Exception as e:
         print("ERROR IN get_me:", repr(e))
+        return
 
-    while True:
-        try:
-            print("RUN UNTIL DISCONNECTED...")
-            await client.run_until_disconnected()
-        except Exception as e:
-            print("Disconnected:", repr(e))
-            await asyncio.sleep(5)
-            print("Reconnecting...")
+    print("RUN UNTIL DISCONNECTED...")
+    await client.run_until_disconnected()
 
 
 if __name__ == "__main__":
+    print("MAIN ENTER")
     try:
-        print("MAIN ENTER")
-        with client:
-            client.loop.run_until_complete(runner())
+        client.start()  # Telethon сам підключиться і ініціалізується [web:24]
+        client.loop.run_until_complete(runner())
     except Exception as e:
         print("FATAL ERROR IN MAIN:", repr(e))
