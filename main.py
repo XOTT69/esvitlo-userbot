@@ -84,7 +84,9 @@ async def runner():
 if __name__ == "__main__":
     print("MAIN ENTER")
     try:
-        client.start()  # Telethon сам підключиться і ініціалізується [web:24]
+        client.start()
         client.loop.run_until_complete(runner())
     except Exception as e:
+        import traceback
         print("FATAL ERROR IN MAIN:", repr(e))
+        traceback.print_exc()
