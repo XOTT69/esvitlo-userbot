@@ -1,3 +1,4 @@
+print("PYTHON MAIN STARTED")
 import os
 import asyncio
 import random
