@@ -38,10 +38,9 @@ async def handler(event):
     title = getattr(chat, "title", "")
     text = event.raw_text or ""
 
-    # Логуємо ВСЕ, щоб бачити, що бот живий
+    # Логуємо всі апдейти
     print("MSG from", username or title, ":", text[:80].replace("\n", " "))
 
-    # Фільтр по єСвітлу
     if username != ESVITLO_USERNAME:
         return
 
@@ -70,15 +69,15 @@ async def handler(event):
     print("Forwarded 2.2 to channel")
 
 
-async def runner():
-    print("RUNNER STARTED")
+async def main():
+    print("MAIN ASYNC START")
+    await client.start()  # авторизація/конект[web:69]
     me = await client.get_me()
     print("Userbot running as", me.id, me.username)
     print("RUN UNTIL DISCONNECTED...")
-    await client.run_until_disconnected()
+    await client.run_until_disconnected()  # висить, поки клієнт живий[web:77]
 
 
 if __name__ == "__main__":
     print("MAIN ENTER")
-    client.start()          # ініціалізація клієнта Telethon[web:24]
-    client.loop.run_until_complete(runner())
+    client.loop.run_until_complete(main())
