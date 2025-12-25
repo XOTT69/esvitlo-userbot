@@ -1,7 +1,6 @@
 import os
 import asyncio
 import random
-import ssl
 import requests
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
@@ -17,19 +16,11 @@ TARGET_CHAT_ID = os.environ["TARGET_CHAT_ID"]
 
 ESVITLO_USERNAME = "esvitlo_kyiv_oblast"
 
-# TLS / SSL контекст для Railway (SECLEVEL=1)[web:78]
-ssl_ctx = ssl.create_default_context()
-ssl_ctx.set_ciphers("DEFAULT:@SECLEVEL=1")
-
+# БАЗОВИЙ клієнт, без extra аргументів
 client = TelegramClient(
     StringSession(SESSION_STRING),
     API_ID,
     API_HASH,
-    connection_retries=None,
-    timeout=30,
-    request_retries=5,
-    connection_over_ssl=True,
-    ssl=ssl_ctx,
 )
 
 
@@ -52,7 +43,6 @@ async def handler(event):
     title = getattr(chat, "title", "")
     text = event.raw_text or ""
 
-    # Логуємо все, щоб бачити, що бот живий
     print("MSG from", username or title, ":", text[:80].replace("\n", " "))
 
     if username != ESVITLO_USERNAME:
@@ -85,11 +75,11 @@ async def handler(event):
 
 async def main():
     print("MAIN ASYNC START")
-    await client.start()  # конект до Telegram з урахуванням ssl_ctx[web:24][web:26]
+    await client.start()          # звичайний start без ssl‑кастомізації[web:24]
     me = await client.get_me()
     print("Userbot running as", me.id, me.username)
     print("RUN UNTIL DISCONNECTED...")
-    await client.run_until_disconnected()
+    await client.run_until_disconnected()  # тримає процес живим[web:77]
 
 
 if __name__ == "__main__":
