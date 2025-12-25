@@ -38,8 +38,10 @@ async def handler(event):
     title = getattr(chat, "title", "")
     text = event.raw_text or ""
 
+    # Логуємо ВСЕ, щоб бачити, що бот живий
     print("MSG from", username or title, ":", text[:80].replace("\n", " "))
 
+    # Фільтр по єСвітлу
     if username != ESVITLO_USERNAME:
         return
 
@@ -70,23 +72,13 @@ async def handler(event):
 
 async def runner():
     print("RUNNER STARTED")
-    try:
-        me = await client.get_me()
-        print("Userbot running as", me.id, me.username)
-    except Exception as e:
-        print("ERROR IN get_me:", repr(e))
-        return
-
+    me = await client.get_me()
+    print("Userbot running as", me.id, me.username)
     print("RUN UNTIL DISCONNECTED...")
     await client.run_until_disconnected()
 
 
 if __name__ == "__main__":
     print("MAIN ENTER")
-    try:
-        client.start()
-        client.loop.run_until_complete(runner())
-    except Exception as e:
-        import traceback
-        print("FATAL ERROR IN MAIN:", repr(e))
-        traceback.print_exc()
+    client.start()          # ініціалізація клієнта Telethon[web:24]
+    client.loop.run_until_complete(runner())
