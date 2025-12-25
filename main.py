@@ -16,7 +16,6 @@ TARGET_CHAT_ID = os.environ["TARGET_CHAT_ID"]
 
 ESVITLO_USERNAME = "esvitlo_kyiv_oblast"
 
-# БАЗОВИЙ клієнт, без extra аргументів
 client = TelegramClient(
     StringSession(SESSION_STRING),
     API_ID,
@@ -36,6 +35,16 @@ def send_via_bot(text: str):
     print("Bot API:", r.status_code, r.text[:200])
 
 
+# Логуємо абсолютно всі нові повідомлення, щоб бачити, що юзербот живий
+@client.on(events.NewMessage)
+async def debug_all(event):
+    chat = await event.get_chat()
+    title = getattr(chat, "title", "") or getattr(chat, "username", "") or str(chat.id)
+    text = (event.raw_text or "")[:80].replace("\n", " ")
+    print("DEBUG MSG:", title, "=>", text)
+
+
+# Основна логіка по єСвітлу
 @client.on(events.NewMessage)
 async def handler(event):
     chat = await event.get_chat()
@@ -75,7 +84,7 @@ async def handler(event):
 
 async def main():
     print("MAIN ASYNC START")
-    await client.start()          # звичайний start без ssl‑кастомізації[web:24]
+    await client.start()          # підключення й авторизація[web:24]
     me = await client.get_me()
     print("Userbot running as", me.id, me.username)
     print("RUN UNTIL DISCONNECTED...")
