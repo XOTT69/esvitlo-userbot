@@ -12,7 +12,7 @@ SESSION_STRING = os.environ["SESSION_STRING"]
 BOT_TOKEN = os.environ["BOT_TOKEN"]            # токен @plazakvartalbot
 TARGET_CHAT_ID = os.environ["TARGET_CHAT_ID"]  # '-1003348454247' як str
 
-ESVITLO_CHANNEL = "esvitlo_kyiv_oblast"       # канал еСвітло Київська область
+ESVITLO_USERNAME = "esvitlo_kyiv_oblast"       # username каналу
 
 client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
 
@@ -32,10 +32,26 @@ def send_via_bot(text: str):
         print("Bot API error:", e)
 
 
-@client.on(events.NewMessage(chats=ESVITLO_CHANNEL))
-async def esvitlo_handler(event):
+@client.on(events.NewMessage)
+async def debug_and_esvitlo(event):
+    # Глобальний лог усіх нових повідомлень
+    chat = await event.get_chat()
+    title = getattr(chat, "title", "")
+    username = getattr(chat, "username", "")
+    chat_id = getattr(chat, "id", None)
     text = event.raw_text or ""
-    print("NEW FROM ESVITLO:", text[:100])
+
+    print(
+        "MSG:",
+        "chat_id=", chat_id,
+        "| username=", username,
+        "| title=", title[:40],
+        "| text=", text[:80].replace("\n", " "),
+    )
+
+    # Далі — наша бізнес‑логіка тільки для єСвітла
+    if username != ESVITLO_USERNAME:
+        return
 
     if "2.2" not in text and "підгрупа 2.2" not in text:
         return
@@ -68,7 +84,7 @@ async def runner():
 
     while True:
         try:
-            await client.run_until_disconnected()  # тримаємо конект поки не впав[web:220][web:225]
+            await client.run_until_disconnected()  # Telethon сам реконектиться, ми ловимо падіння циклу[web:220][web:225]
         except Exception as e:
             print("Disconnected with error:", repr(e))
             await asyncio.sleep(5)
