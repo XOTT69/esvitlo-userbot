@@ -1,10 +1,11 @@
-print("PYTHON MAIN STARTED")
 import os
 import asyncio
 import random
 import requests
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
+
+print("PYTHON MAIN STARTED")
 
 API_ID = int(os.environ["API_ID"])
 API_HASH = os.environ["API_HASH"]
@@ -32,15 +33,18 @@ def send_via_bot(text: str):
 
 @client.on(events.NewMessage)
 async def handler(event):
-    chat = await event.get_chat()
+    try:
+        chat = await event.get_chat()
+    except Exception as e:
+        print("ERROR get_chat:", repr(e))
+        return
+
     username = getattr(chat, "username", "")
     title = getattr(chat, "title", "")
     text = event.raw_text or ""
 
-    # Лог всіх апдейтів
     print("MSG from", username or title, ":", text[:80].replace("\n", " "))
 
-    # Далі працюємо тільки з єСвітлом
     if username != ESVITLO_USERNAME:
         return
 
@@ -70,11 +74,23 @@ async def handler(event):
 
 
 async def runner():
-    me = await client.get_me()
-    print("Userbot running as", me.id, me.username)
+    print("RUNNER STARTED")
+
+    try:
+        await client.connect()
+        print("CLIENT CONNECTED:", client.is_connected())
+    except Exception as e:
+        print("ERROR CONNECT:", repr(e))
+
+    try:
+        me = await client.get_me()
+        print("Userbot running as", me.id, me.username)
+    except Exception as e:
+        print("ERROR IN get_me:", repr(e))
 
     while True:
         try:
+            print("RUN UNTIL DISCONNECTED...")
             await client.run_until_disconnected()
         except Exception as e:
             print("Disconnected:", repr(e))
